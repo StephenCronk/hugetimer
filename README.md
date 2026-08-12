@@ -12,17 +12,19 @@ python3 -m http.server 8000
 # → http://localhost:8000
 ```
 
-## Deploy to GitHub Pages
+## Deploy
 
-The repo root *is* the site, so either Pages source works:
+Live at **https://stephencronk.github.io/hugetimer/**
 
-**Deploy from a branch** — Settings → Pages → Source: `Deploy from a branch`,
-branch `main`, folder `/ (root)`.
+The repo root *is* the site — there's no build step, so Pages serves it directly
+(Settings → Pages → Source: `Deploy from a branch`, branch `main`, folder `/ (root)`).
+`.nojekyll` is present so the files are served as-is.
 
-**GitHub Actions** — Settings → Pages → Source: `GitHub Actions`. The included
-`.github/workflows/pages.yml` publishes the root on every push to `main`.
+Publishing a change is just:
 
-`.nojekyll` is present so Pages serves the files as-is.
+```sh
+git push
+```
 
 ## Behaviour
 
