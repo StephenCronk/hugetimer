@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BFTIMER</title>
+<meta name="description" content="A big, blocky pixel countdown timer with saveable lengths.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#282c34">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <main class="stage" id="stage">
+    <canvas id="clock" aria-label="Countdown clock"></canvas>
+    <p class="clock-readout" id="readout" role="status" aria-live="polite"></p>
+    <button class="floating" id="show-sidebar" title="Show sidebar (\)" aria-label="Show sidebar">&#9776;</button>
+  </main>
+
+  <aside class="sidebar" id="sidebar">
+
+    <header class="bar">
+      <h1 class="wordmark">BFTIMER</h1>
+      <button class="icon-btn" id="hide-sidebar" title="Hide sidebar (\)" aria-label="Hide sidebar">&#9776;</button>
+    </header>
+
+    <section class="saved">
+      <h2 class="label">SAVED</h2>
+      <ul class="presets" id="presets"></ul>
+    </section>
+
+    <section class="new-preset">
+      <h2 class="label">NEW PRESET</h2>
+      <form id="preset-form" autocomplete="off">
+        <input type="text" id="preset-name" placeholder="name" maxlength="24" aria-label="Preset name">
+        <div class="row">
+          <input type="text" id="preset-length" placeholder="50:00" maxlength="8" aria-label="Preset length" inputmode="numeric">
+          <button type="submit" class="chip" id="preset-save" disabled>SAVE</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="controls">
+      <button class="slab primary" id="toggle">START</button>
+      <button class="slab ghost" id="reset">RESET</button>
+      <div class="row">
+        <button class="chip" data-adjust="60">+1:00</button>
+        <button class="chip" data-adjust="300">+5:00</button>
+        <button class="chip" data-adjust="-60">&minus;1:00</button>
+      </div>
+      <button class="chip wide" id="fullscreen">FULLSCREEN</button>
+    </section>
+
+  </aside>
+
+</div>
+
+<div class="flash" id="flash" aria-hidden="true"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
