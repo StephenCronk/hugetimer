@@ -111,7 +111,7 @@
   const displaySeconds = () => Math.max(0, Math.ceil(timer.remaining - 0.0001));
 
   function setLength(seconds, presetId = null) {
-    stopTicker();
+    halt();
     timer.total = Math.max(1, seconds);
     timer.remaining = timer.total;
     timer.state = 'ready';
@@ -133,7 +133,7 @@
   function pause() {
     if (timer.state !== 'running') return;
     syncRemaining();
-    stopTicker();
+    halt();
     timer.state = 'paused';
     releaseWakeLock();
     render();
@@ -146,7 +146,7 @@
   }
 
   function reset() {
-    stopTicker();
+    halt();
     timer.remaining = timer.total;
     timer.state = 'ready';
     releaseWakeLock();
@@ -175,9 +175,16 @@
     ticker = setInterval(tick, 100);
   }
 
+  // Stops the interval only. The deadline is cleared by whoever actually halts
+  // the run — start() sets it before ticking begins, so clearing it here would
+  // wipe the deadline out from under the very tick loop it just started.
   function stopTicker() {
     if (ticker) clearInterval(ticker);
     ticker = null;
+  }
+
+  function halt() {
+    stopTicker();
     timer.deadline = null;
   }
 
@@ -186,7 +193,7 @@
     syncRemaining();
     if (timer.remaining <= 0) {
       timer.remaining = 0;
-      stopTicker();
+      halt();
       timer.state = 'finished';
       releaseWakeLock();
       flash();
