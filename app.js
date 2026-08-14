@@ -42,10 +42,11 @@
   // cascade can hand back "" before styles settle, and an empty fillStyle is
   // ignored by canvas — which paints the clock in the default black, i.e.
   // invisible. styles.css mirrors these values.
+  // The clock burns orange; the chrome around it stays cyan.
   var PALETTE = {
-    lit:         '#00e5ff',
-    litSoft:     'rgba(0, 229, 255, 0.55)',
-    ghost:       'rgba(0, 229, 255, 0.07)',
+    lit:         '#ff9e2c',
+    litSoft:     'rgba(255, 158, 44, 0.6)',
+    ghost:       'rgba(255, 158, 44, 0.08)',
     danger:      '#ff2d78',
     dangerSoft:  'rgba(255, 45, 120, 0.55)',
     ghostDanger: 'rgba(255, 45, 120, 0.08)'

@@ -1,12 +1,13 @@
 /* BFTIMER — neon grid.
-   Clock colours live in app.js (PALETTE) and are mirrored here; the canvas no
-   longer reads them back out of CSS. Keep the two in sync by hand. */
+   The clock's own colours live in app.js (PALETTE) — orange #ff9e2c, going
+   hot pink #ff2d78 for the last stretch — and the canvas no longer reads them
+   back out of CSS. The values below are the chrome around it. */
 :root {
   --bg:        #04070d;
   --grid:      rgba(0, 229, 255, 0.055);
   --grid-step: 44px;
 
-  --lit:       #00e5ff;  /* the clock */
+  --lit:       #00e5ff;  /* chrome: chips, wordmark, grid */
   --danger:    #ff2d78;
   --text-dim:  rgba(0, 229, 255, 0.45);
 

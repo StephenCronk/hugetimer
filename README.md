@@ -28,9 +28,9 @@ git push
 
 ## Behaviour
 
-- The clock is an 11x16 LED matrix in neon cyan, every stroke four cells thick,
-  glowing over a faint Tron grid. It always fills the screen — there is no panel to
-  hide.
+- The clock is an 11x16 LED matrix glowing neon orange, every stroke four cells
+  thick, over a faint cyan Tron grid. It always fills the screen — there is no panel
+  to hide.
 - Format is `MM:SS`, switching to `H:MM:SS` past an hour.
 - The digits turn **hot pink for the last 10%** of the run.
 - At zero the **whole screen strobes 5 times** — hard on/off, no fade. No sound, ever.
