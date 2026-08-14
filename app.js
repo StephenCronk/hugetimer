@@ -44,9 +44,9 @@
   // invisible. styles.css mirrors these values.
   // Orange throughout, hot pink for the last stretch.
   var PALETTE = {
-    lit:         '#ff7a1a',
-    litSoft:     'rgba(255, 122, 26, 0.6)',
-    ghost:       'rgba(255, 122, 26, 0.08)',
+    lit:         '#ff6600',
+    litSoft:     'rgba(255, 102, 0, 0.85)',
+    ghost:       'rgba(255, 102, 0, 0.09)',
     danger:      '#ff2d78',
     dangerSoft:  'rgba(255, 45, 120, 0.55)',
     ghostDanger: 'rgba(255, 45, 120, 0.08)'
@@ -244,19 +244,26 @@
     var offColor = warning ? PALETTE.ghostDanger : PALETTE.ghost;
     var glowColor = warning ? PALETTE.dangerSoft : PALETTE.litSoft;
 
-    // Unlit cells first (flat), then the lit ones twice: a wide soft bloom
-    // underneath and a crisp pass on top, so the strokes read as neon tube.
-    var layers = ['off', 'glow', 'on'];
+    // Unlit cells first (flat), then the lit ones four times: a wide halo, a
+    // tighter hotter one, a bright core and a crisp pass on top. Stacking the
+    // shadows is what makes the strokes read as burning rather than painted.
+    var layers = [
+      { fill: offColor, on: false, blur: 0 },
+      { fill: onColor, on: true, blur: cell * 3.4, glow: glowColor },
+      { fill: onColor, on: true, blur: cell * 1.6, glow: glowColor },
+      { fill: onColor, on: true, blur: cell * 0.6, glow: onColor },
+      { fill: onColor, on: true, blur: 0 }
+    ];
 
     for (var l = 0; l < layers.length; l++) {
       var layer = layers[l];
 
       ctx.save();
-      if (layer === 'glow') {
-        ctx.shadowColor = glowColor;
-        ctx.shadowBlur = cell * 2.2;
+      if (layer.blur > 0) {
+        ctx.shadowColor = layer.glow;
+        ctx.shadowBlur = layer.blur;
       }
-      ctx.fillStyle = layer === 'off' ? offColor : onColor;
+      ctx.fillStyle = layer.fill;
 
       var column = 0;
       for (var i = 0; i < text.length; i++) {
@@ -269,7 +276,7 @@
           var line = glyph ? glyph[y] : '';
           for (var x = 0; x < width; x++) {
             var lit = line.charAt(x) === '1';
-            if (lit === (layer === 'off')) continue;
+            if (lit !== layer.on) continue;
             ctx.rect(
               originX + (column + x) * cell + inset,
               originY + y * cell + inset,
