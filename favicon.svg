@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="7" fill="#21252b"/>
+  <rect width="32" height="32" rx="7" fill="#04070d"/>
   <!-- "BF" in the same slab weight as the clock face -->
-  <g fill="#e5c07b">
+  <g fill="#00e5ff">
     <!-- B -->
     <rect x="5" y="7"  width="10" height="3"/>
     <rect x="5" y="10" width="3"  height="12"/>

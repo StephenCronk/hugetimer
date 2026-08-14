@@ -28,21 +28,19 @@ git push
 
 ## Behaviour
 
-- The clock is an 11x16 LED matrix in muted yellow, every stroke four cells thick.
-  It scales to fill the stage — hide the sidebar or go fullscreen and it owns the
-  whole screen.
+- The clock is an 11x16 LED matrix in neon cyan, every stroke four cells thick,
+  glowing over a faint Tron grid. It always fills the screen — there is no panel to
+  hide.
 - Format is `MM:SS`, switching to `H:MM:SS` past an hour.
-- The digits turn **red for the last 10%** of the run.
-- At zero the **whole screen flashes red 3 times**. No sound, ever.
+- The digits turn **hot pink for the last 10%** of the run.
+- At zero the **whole screen strobes 5 times** — hard on/off, no fade. No sound, ever.
 - Remaining time mirrors into the tab title.
 - Requests a screen wake lock while running, where the browser supports it.
 
-## Presets
+## Controls
 
-The right column holds named lengths (`art pass` / `50:00`, `break` / `15:00`, …).
-Click one to load it. Add via the **NEW PRESET** fields — the length box accepts
-`50` (minutes), `50:00`, or `1:30:00`. Delete with the `✕` on hover. Presets persist
-in `localStorage` under `bftimer.presets.v1`.
+One row under the clock: **50 MIN**, **10 MIN**, **START/PAUSE**, **RESET**. Nothing is
+saved or persisted — reload and you're back to 50 minutes.
 
 ## Keys
 
@@ -51,15 +49,17 @@ in `localStorage` under `bftimer.presets.v1`.
 | `Space` | Start / pause |
 | `R` | Reset |
 | `F` | Fullscreen |
-| `\` | Toggle sidebar |
 
-Shortcuts stand down while a text field has focus.
+## Version
+
+A tiny faint version number sits in the bottom-right of the page. Bump it in
+`index.html` (`.version`) with every update.
 
 ## Layout
 
 | File | Role |
 | --- | --- |
-| `index.html` | Markup — stage on the left, sidebar on the right |
-| `styles.css` | One Dark Pro palette, layout, button styles |
-| `app.js` | Pixel font, timer, canvas renderer, presets, shortcuts |
+| `index.html` | Markup — full-bleed clock, control row, version stamp |
+| `styles.css` | Neon palette, grid background, button styles |
+| `app.js` | Pixel font, timer, canvas renderer, strobe, shortcuts |
 | `favicon.svg` | Pixel "BF" mark |
