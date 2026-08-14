@@ -44,9 +44,9 @@
   // invisible. styles.css mirrors these values.
   // Orange throughout, hot pink for the last stretch.
   var PALETTE = {
-    lit:         '#ff9e2c',
-    litSoft:     'rgba(255, 158, 44, 0.6)',
-    ghost:       'rgba(255, 158, 44, 0.08)',
+    lit:         '#ff7a1a',
+    litSoft:     'rgba(255, 122, 26, 0.6)',
+    ghost:       'rgba(255, 122, 26, 0.08)',
     danger:      '#ff2d78',
     dangerSoft:  'rgba(255, 45, 120, 0.55)',
     ghostDanger: 'rgba(255, 45, 120, 0.08)'

@@ -52,7 +52,8 @@ saved or persisted — reload and you're back to 50 minutes.
 
 ## Version
 
-A tiny faint version number sits in the bottom-right of the page. Bump it in
+A tiny grey version number sits in the bottom-right of the page — off-palette on
+purpose, so it reads as a build stamp rather than part of the UI. Bump it in
 `index.html` (`.version`) with every update.
 
 ## Layout
