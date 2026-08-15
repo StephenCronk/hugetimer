@@ -1,4 +1,4 @@
-/* BFTIMER — a huge blocky neon countdown. No sound, ever.
+/* BFTIMER — a huge blocky neon countdown.
    Deliberately conservative syntax (no optional chaining / optional catch) so
    older Safari parses the whole file — a parse error here leaves a blank page. */
 (function () {
@@ -42,7 +42,10 @@
   // cascade can hand back "" before styles settle, and an empty fillStyle is
   // ignored by canvas — which paints the clock in the default black, i.e.
   // invisible. styles.css mirrors these values.
-  // Orange throughout, hot pink for the last stretch.
+  //
+  // lit/litSoft/ghost are rewritten by applyTheme() whenever the wheel moves;
+  // the danger trio is fixed, because "nearly out of time" shouldn't change
+  // meaning just because the theme did.
   var PALETTE = {
     lit:         '#ff6600',
     litSoft:     'rgba(255, 102, 0, 0.85)',
@@ -101,6 +104,7 @@
     timer.state = 'running';
     startTicker();
     requestWakeLock();
+    play(startSound);
     render();
   }
 
@@ -159,6 +163,7 @@
       halt();
       timer.state = 'finished';
       releaseWakeLock();
+      play(endSound);
       flash();
     }
     render();
@@ -322,6 +327,156 @@
     flashEl.classList.remove('on');
   }
 
+  // ---------------------------------------------------------------- theme
+
+  // The whole UI is tinted from one colour. CSS reads it as --lit-rgb, the
+  // canvas reads it from PALETTE, and both are rewritten together here.
+
+  var STORE_THEME = 'bftimer.theme';
+  var DEFAULT_HSV = { h: 24, s: 1, v: 1 }; // #ff6600
+
+  var theme = loadTheme();
+
+  function loadTheme() {
+    try {
+      var raw = localStorage.getItem(STORE_THEME);
+      if (!raw) return { h: DEFAULT_HSV.h, s: DEFAULT_HSV.s, v: DEFAULT_HSV.v };
+      var saved = JSON.parse(raw);
+      if (!saved || !isFinite(saved.h) || !isFinite(saved.s) || !isFinite(saved.v)) throw 0;
+      return { h: saved.h, s: saved.s, v: saved.v };
+    } catch (err) {
+      return { h: DEFAULT_HSV.h, s: DEFAULT_HSV.s, v: DEFAULT_HSV.v };
+    }
+  }
+
+  function saveTheme() {
+    try {
+      localStorage.setItem(STORE_THEME, JSON.stringify(theme));
+    } catch (err) {
+      /* private mode — the theme just won't survive a reload */
+    }
+  }
+
+  // h 0-360, s/v 0-1 → {r,g,b} 0-255.
+  function hsvToRgb(h, s, v) {
+    var i = Math.floor((h % 360) / 60);
+    var f = (h % 360) / 60 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+    var r, g, b;
+
+    switch (i) {
+      case 0:  r = v; g = t; b = p; break;
+      case 1:  r = q; g = v; b = p; break;
+      case 2:  r = p; g = v; b = t; break;
+      case 3:  r = p; g = q; b = v; break;
+      case 4:  r = t; g = p; b = v; break;
+      default: r = v; g = p; b = q; break;
+    }
+
+    return {
+      r: Math.round(r * 255),
+      g: Math.round(g * 255),
+      b: Math.round(b * 255)
+    };
+  }
+
+  function hex2(n) {
+    var s = n.toString(16).toUpperCase();
+    return s.length < 2 ? '0' + s : s;
+  }
+
+  function applyTheme() {
+    var rgb = hsvToRgb(theme.h, theme.s, theme.v);
+    var triplet = rgb.r + ', ' + rgb.g + ', ' + rgb.b;
+
+    document.documentElement.style.setProperty('--lit-rgb', triplet);
+
+    PALETTE.lit = 'rgb(' + triplet + ')';
+    PALETTE.litSoft = 'rgba(' + triplet + ', 0.85)';
+    PALETTE.ghost = 'rgba(' + triplet + ', 0.09)';
+
+    if (hexOut) hexOut.textContent = '#' + hex2(rgb.r) + hex2(rgb.g) + hex2(rgb.b);
+
+    lastDrawn = null; // the face is the old colour until it's repainted
+    drawClock();
+  }
+
+  // ---------------------------------------------------------------- sound
+
+  var STORE_MUTED = 'bftimer.muted';
+
+  var startSound = new Audio('lockon.wav');
+  var endSound = new Audio('bus.wav');
+  startSound.preload = 'auto';
+  endSound.preload = 'auto';
+
+  var muted = false;
+  try {
+    muted = localStorage.getItem(STORE_MUTED) === '1';
+  } catch (err) {
+    /* private mode — just start unmuted */
+  }
+
+  // Safari only lets an element play from a timer if it has already played
+  // during a user gesture, so the finish sound — which fires from setInterval —
+  // gets a silent play/pause on the first gesture the page sees.
+  //
+  // Only endSound is primed. startSound always plays from a real click or
+  // keypress, and priming it would race: the silent pass sets muted and pauses
+  // asynchronously, which would cut off the very sound the gesture triggered.
+  var primed = false;
+
+  function primeAudio() {
+    if (primed) return;
+    primed = true;
+
+    endSound.muted = true;
+    var settle = function () {
+      try { endSound.pause(); } catch (err) { /* never started */ }
+      try { endSound.currentTime = 0; } catch (err) { /* not seekable yet */ }
+      endSound.muted = false;
+    };
+
+    var played;
+    try {
+      played = endSound.play();
+    } catch (err) {
+      settle();
+      return;
+    }
+
+    if (played && played.then) played.then(settle, settle);
+    else settle();
+  }
+
+  function play(el) {
+    if (muted) return;
+    try {
+      el.currentTime = 0;
+      var played = el.play();
+      if (played && played['catch']) played['catch'](function () {});
+    } catch (err) {
+      /* blocked or still loading — the timer doesn't depend on audio */
+    }
+  }
+
+  function setMuted(next) {
+    muted = next;
+    if (muted) {
+      try { endSound.pause(); } catch (err) { /* not playing */ }
+      try { startSound.pause(); } catch (err) { /* not playing */ }
+    }
+    soundBtn.setAttribute('aria-pressed', muted ? 'false' : 'true');
+    soundBtn.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+    try {
+      localStorage.setItem(STORE_MUTED, muted ? '1' : '0');
+    } catch (err) {
+      /* preference just won't persist */
+    }
+  }
+
   // ---------------------------------------------------------------- wake lock
 
   var wakeLock = null;
@@ -364,6 +519,13 @@
   var toggleBtn = document.getElementById('toggle');
   var readout = document.getElementById('readout');
   var lengthBtns = document.querySelectorAll('[data-length]');
+  var themeBtn = document.getElementById('theme');
+  var soundBtn = document.getElementById('sound');
+  var picker = document.getElementById('picker');
+  var wheel = document.getElementById('wheel');
+  var wheelCtx = wheel.getContext('2d');
+  var brightness = document.getElementById('brightness');
+  var hexOut = document.getElementById('hex');
 
   var lastAnnounced = null;
 
@@ -392,6 +554,148 @@
     }
   }
 
+  // ---------------------------------------------------------------- colour wheel
+
+  // Hue around the rim, saturation out from the middle, value on the slider.
+
+  var WHEEL_CSS = 196;
+
+  function sizeWheel() {
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    wheel.style.width = WHEEL_CSS + 'px';
+    wheel.style.height = WHEEL_CSS + 'px';
+    wheel.width = Math.round(WHEEL_CSS * dpr);
+    wheel.height = Math.round(WHEEL_CSS * dpr);
+  }
+
+  function drawWheel() {
+    var size = wheel.width;
+    if (!size) return;
+
+    var radius = size / 2;
+    var image = wheelCtx.createImageData(size, size);
+    var data = image.data;
+
+    for (var y = 0; y < size; y++) {
+      for (var x = 0; x < size; x++) {
+        var dx = x - radius + 0.5;
+        var dy = y - radius + 0.5;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var i = (y * size + x) * 4;
+
+        if (dist > radius) {
+          data[i + 3] = 0;
+          continue;
+        }
+
+        var hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+        var rgb = hsvToRgb(hue, Math.min(1, dist / (radius - 1)), theme.v);
+
+        data[i] = rgb.r;
+        data[i + 1] = rgb.g;
+        data[i + 2] = rgb.b;
+        // Feather the last pixel of the rim, or the circle reads as a sawtooth.
+        data[i + 3] = dist > radius - 1 ? Math.round(255 * (radius - dist)) : 255;
+      }
+    }
+
+    wheelCtx.putImageData(image, 0, 0);
+
+    var angle = theme.h * Math.PI / 180;
+    var reach = theme.s * (radius - 1);
+    wheelCtx.beginPath();
+    wheelCtx.arc(radius + Math.cos(angle) * reach, radius + Math.sin(angle) * reach, radius * 0.05, 0, Math.PI * 2);
+    wheelCtx.strokeStyle = theme.v > 0.55 ? '#04070d' : '#ffffff';
+    wheelCtx.lineWidth = Math.max(2, radius * 0.02);
+    wheelCtx.stroke();
+  }
+
+  function pickFromPoint(clientX, clientY) {
+    var rect = wheel.getBoundingClientRect();
+    if (!rect.width) return;
+
+    var radius = rect.width / 2;
+    var dx = clientX - rect.left - radius;
+    var dy = clientY - rect.top - radius;
+
+    theme.h = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+    theme.s = Math.min(1, Math.sqrt(dx * dx + dy * dy) / radius);
+
+    applyTheme();
+    drawWheel();
+  }
+
+  var dragging = false;
+
+  wheel.addEventListener('mousedown', function (event) {
+    dragging = true;
+    pickFromPoint(event.clientX, event.clientY);
+    event.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function (event) {
+    if (dragging) pickFromPoint(event.clientX, event.clientY);
+  });
+
+  document.addEventListener('mouseup', function () {
+    if (!dragging) return;
+    dragging = false;
+    saveTheme(); // once per drag, not once per pixel
+  });
+
+  wheel.addEventListener('touchstart', function (event) {
+    var touch = event.touches[0];
+    if (!touch) return;
+    pickFromPoint(touch.clientX, touch.clientY);
+    event.preventDefault();
+  });
+
+  wheel.addEventListener('touchmove', function (event) {
+    var touch = event.touches[0];
+    if (!touch) return;
+    pickFromPoint(touch.clientX, touch.clientY);
+    event.preventDefault();
+  });
+
+  wheel.addEventListener('touchend', saveTheme);
+
+  brightness.addEventListener('input', function () {
+    theme.v = Number(brightness.value) / 100;
+    applyTheme();
+    drawWheel();
+  });
+  brightness.addEventListener('change', saveTheme);
+
+  function setPicker(open) {
+    picker.hidden = !open;
+    themeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      sizeWheel();
+      drawWheel();
+    }
+  }
+
+  themeBtn.addEventListener('click', function () {
+    setPicker(picker.hidden);
+  });
+
+  soundBtn.addEventListener('click', function () {
+    setMuted(!muted);
+  });
+
+  // Unlock audio on the first gesture. mousedown/touchstart/keydown rather than
+  // click, so priming has always finished before any handler plays a sound.
+  document.addEventListener('mousedown', primeAudio);
+  document.addEventListener('touchstart', primeAudio);
+  document.addEventListener('keydown', primeAudio);
+
+  // Dismiss the picker on a click outside it.
+  document.addEventListener('click', function (event) {
+    if (picker.hidden) return;
+    if (picker.contains(event.target) || themeBtn.contains(event.target)) return;
+    setPicker(false);
+  });
+
   // ---------------------------------------------------------------- wiring
 
   toggleBtn.addEventListener('click', toggle);
@@ -407,8 +711,16 @@
 
   document.addEventListener('keydown', function (event) {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
-    // A focused chip handles its own Space/Enter — don't double-fire.
-    if (event.target && event.target.tagName === 'BUTTON') return;
+
+    if (event.key === 'Escape' || event.key === 'Esc') {
+      setPicker(false);
+      return;
+    }
+
+    // A focused chip handles its own Space/Enter, and the brightness slider
+    // owns its arrow keys — don't double-fire either.
+    var tag = event.target ? event.target.tagName : '';
+    if (tag === 'BUTTON' || tag === 'INPUT') return;
 
     switch (event.key) {
       case ' ':
@@ -445,6 +757,10 @@
 
   // ---------------------------------------------------------------- boot
 
+  brightness.value = String(Math.round(theme.v * 100));
+  applyTheme();
+  setMuted(muted);
+  sizeWheel();
   resizeCanvas();
   render();
   requestAnimationFrame(resizeCanvas);

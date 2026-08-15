@@ -9,9 +9,9 @@
 <meta name="theme-color" content="#04070d">
 <!-- ?v= is a cache buster, not decoration: index.html revalidates but Safari
      will happily serve a stale styles.css/app.js from the same URL. Bump it
-     everywhere at once with ./bump 1.8 — see README. -->
-<link rel="icon" href="favicon.svg?v=1.7" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css?v=1.7">
+     everywhere at once with ./bump 1.9 — see README. -->
+<link rel="icon" href="favicon.svg?v=1.8" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=1.8">
 </head>
 <body>
 
@@ -22,19 +22,31 @@
     <p class="clock-readout" id="readout" role="status" aria-live="polite"></p>
   </main>
 
+  <div class="picker" id="picker" hidden>
+    <canvas id="wheel" width="196" height="196" aria-label="Theme colour wheel"></canvas>
+    <input type="range" id="brightness" min="25" max="100" value="100" aria-label="Brightness">
+    <output class="hex" id="hex" for="wheel brightness">#FF6600</output>
+  </div>
+
   <footer class="controls">
+    <button class="chip icon" id="theme" aria-label="Theme colour" aria-expanded="false" aria-controls="picker">
+      <span class="swatch" aria-hidden="true"></span>
+    </button>
     <button class="chip" data-length="3000">50 MIN</button>
     <button class="chip" data-length="600">10 MIN</button>
     <button class="chip go" id="toggle">START</button>
     <button class="chip" id="reset">RESET</button>
+    <button class="chip icon" id="sound" aria-label="Mute" aria-pressed="true">
+      <span class="glyph" aria-hidden="true">&#9834;</span>
+    </button>
   </footer>
 
 </div>
 
-<span class="version" aria-hidden="true">v1.7</span>
+<span class="version" aria-hidden="true">v1.8</span>
 
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="app.js?v=1.7"></script>
+<script src="app.js?v=1.8"></script>
 </body>
 </html>

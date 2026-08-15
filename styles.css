@@ -1,15 +1,20 @@
-/* BFTIMER — neon grid, all orange.
-   The clock's own colours live in app.js (PALETTE) — orange #ff6600, going
-   hot pink #ff2d78 for the last stretch — and the canvas no longer reads them
-   back out of CSS. The values below are the chrome around it. */
+/* BFTIMER — neon grid.
+   The theme colour is live: --lit-rgb is rewritten by the wheel picker in
+   app.js, so everything tinted by it must be written rgba(var(--lit-rgb), a)
+   rather than a baked hex. The clock's own colours are mirrored in app.js
+   (PALETTE) and updated in the same pass. Hot pink is fixed — it means "time
+   nearly up" and shouldn't drift with the theme. */
 :root {
+  --lit-rgb:   255, 102, 0;         /* the theme colour, rewritten at runtime */
+  --lit:       rgb(255, 102, 0);
+  --lit:       rgb(var(--lit-rgb));
+
   --bg:        #04070d;
-  --grid:      rgba(255, 102, 0, 0.055);
+  --grid:      rgba(var(--lit-rgb), 0.055);
   --grid-step: 44px;
 
-  --lit:       #ff6600;  /* chrome: chips, grid */
   --danger:    #ff2d78;
-  --text-dim:  rgba(255, 102, 0, 0.45);
+  --text-dim:  rgba(var(--lit-rgb), 0.45);
   --grey:      #8b929c;  /* version stamp — deliberately off-palette */
 
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -23,7 +28,6 @@ html, body {
   overflow: hidden;
   background: #04070d;
   background: var(--bg);
-  color: #ff6600;
   color: var(--lit);
   font-family: var(--mono);
   -webkit-font-smoothing: antialiased;
@@ -99,8 +103,8 @@ body::before {
   font-weight: 700;
   letter-spacing: 3px;
   color: var(--text-dim);
-  background: rgba(255, 102, 0, 0.035);
-  border: 1px solid rgba(255, 102, 0, 0.28);
+  background: rgba(var(--lit-rgb), 0.035);
+  border: 1px solid rgba(var(--lit-rgb), 0.28);
   border-radius: 3px;
   cursor: pointer;
   -webkit-appearance: none;
@@ -113,28 +117,112 @@ body::before {
   color: var(--lit);
   border-color: var(--lit);
   outline: none;
-  box-shadow: 0 0 12px rgba(255, 102, 0, 0.35), inset 0 0 12px rgba(255, 102, 0, 0.12);
+  box-shadow: 0 0 12px rgba(var(--lit-rgb), 0.35), inset 0 0 12px rgba(var(--lit-rgb), 0.12);
 }
 
-.chip:active { background: rgba(255, 102, 0, 0.1); }
+.chip:active { background: rgba(var(--lit-rgb), 0.1); }
 
 /* Length chip matching the loaded timer. */
 .chip.active {
   color: var(--lit);
-  border-color: rgba(255, 102, 0, 0.55);
-  box-shadow: inset 0 0 14px rgba(255, 102, 0, 0.14);
+  border-color: rgba(var(--lit-rgb), 0.55);
+  box-shadow: inset 0 0 14px rgba(var(--lit-rgb), 0.14);
 }
 
 /* START / PAUSE */
 .chip.go {
   color: var(--lit);
   border-color: var(--lit);
-  box-shadow: 0 0 14px rgba(255, 102, 0, 0.3), inset 0 0 14px rgba(255, 102, 0, 0.12);
+  box-shadow: 0 0 14px rgba(var(--lit-rgb), 0.3), inset 0 0 14px rgba(var(--lit-rgb), 0.12);
 }
 .chip.go.warning {
   color: var(--danger);
   border-color: var(--danger);
   box-shadow: 0 0 14px rgba(255, 45, 120, 0.35), inset 0 0 14px rgba(255, 45, 120, 0.14);
+}
+
+/* Square chips: the theme swatch and the mute toggle bracket the row. */
+.chip.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  padding: 0;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.swatch {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--lit);
+  box-shadow: 0 0 9px rgba(var(--lit-rgb), 0.85);
+}
+
+#sound { color: var(--lit); }
+
+/* Muted reads as struck-through and drops back to the dim colour. */
+#sound[aria-pressed="false"] { color: var(--text-dim); }
+#sound[aria-pressed="false"] .glyph { text-decoration: line-through; }
+
+/* ---------- colour picker ---------- */
+
+.picker {
+  position: absolute;
+  left: 20px;
+  bottom: 74px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(4, 7, 13, 0.94);
+  border: 1px solid rgba(var(--lit-rgb), 0.35);
+  border-radius: 4px;
+  box-shadow: 0 0 22px rgba(var(--lit-rgb), 0.18);
+}
+.picker[hidden] { display: none; }
+
+#wheel {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+#brightness {
+  width: 100%;
+  -webkit-appearance: none;
+          appearance: none;
+  height: 4px;
+  background: linear-gradient(to right, #000, var(--lit));
+  border-radius: 2px;
+  outline: none;
+}
+#brightness::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--lit);
+  border: 0;
+  cursor: pointer;
+}
+#brightness::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--lit);
+  cursor: pointer;
+}
+
+.hex {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-dim);
 }
 
 /* ---------- version stamp ---------- */
@@ -174,6 +262,8 @@ body::before {
   .stage { padding: 18px 16px 10px; }
   .controls { padding: 0 12px 18px; gap: 8px; }
   .chip { min-width: 78px; padding: 0 12px; letter-spacing: 2px; }
+  .chip.icon { min-width: 40px; padding: 0; }
+  .picker { left: 12px; right: 12px; bottom: 66px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
