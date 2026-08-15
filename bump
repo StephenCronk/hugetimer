@@ -1,0 +1,22 @@
+#!/bin/sh
+# Bump the site version in one shot: the visible stamp *and* every ?v= cache
+# buster on styles.css / app.js / favicon.svg. Doing these by hand is how you
+# end up shipping CSS the browser never bothers to fetch.
+#
+#   ./bump 1.8
+#
+# macOS sed (-i '') — adjust for GNU sed if this ever runs on Linux.
+set -e
+
+version="$1"
+if [ -z "$version" ]; then
+  echo "usage: ./bump <version>   e.g. ./bump 1.8" >&2
+  exit 1
+fi
+
+sed -i '' -E \
+  -e "s/\?v=[0-9.]+/?v=$version/g" \
+  -e "s|(class=\"version\"[^>]*>)v[0-9.]+|\1v$version|" \
+  index.html
+
+grep -n 'v=\|class="version"' index.html

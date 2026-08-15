@@ -53,14 +53,26 @@ saved or persisted — reload and you're back to 50 minutes.
 ## Version
 
 A tiny grey version number sits in the bottom-right of the page — off-palette on
-purpose, so it reads as a build stamp rather than part of the UI. Bump it in
-`index.html` (`.version`) with every update.
+purpose, so it reads as a build stamp rather than part of the UI.
+
+Bump it with every update, using the script rather than by hand:
+
+```sh
+./bump 1.8
+```
+
+That rewrites the stamp *and* the `?v=` on `styles.css`, `app.js` and
+`favicon.svg` in `index.html`. The query strings matter: Pages revalidates
+`index.html` but lets browsers sit on a cached stylesheet indefinitely, so
+without a fresh URL you ship CSS that Safari never fetches — the page looks
+unchanged apart from the version number, which is the tell.
 
 ## Layout
 
 | File | Role |
 | --- | --- |
 | `index.html` | Markup — full-bleed clock, control row, version stamp |
+| `bump` | Version bump + cache-buster rewrite |
 | `styles.css` | Neon palette, grid background, button styles |
 | `app.js` | Pixel font, timer, canvas renderer, strobe, shortcuts |
 | `favicon.svg` | Pixel "BF" mark |

@@ -7,8 +7,11 @@
 <meta name="description" content="A huge blocky neon countdown timer.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#04070d">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css">
+<!-- ?v= is a cache buster, not decoration: index.html revalidates but Safari
+     will happily serve a stale styles.css/app.js from the same URL. Bump it
+     everywhere at once with ./bump 1.8 — see README. -->
+<link rel="icon" href="favicon.svg?v=1.7" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=1.7">
 </head>
 <body>
 
@@ -28,10 +31,10 @@
 
 </div>
 
-<span class="version" aria-hidden="true">v1.6</span>
+<span class="version" aria-hidden="true">v1.7</span>
 
 <div class="flash" id="flash" aria-hidden="true"></div>
 
-<script src="app.js"></script>
+<script src="app.js?v=1.7"></script>
 </body>
 </html>
